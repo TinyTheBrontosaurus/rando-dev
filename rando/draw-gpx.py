@@ -36,14 +36,17 @@ def main(_argv):
     wpdims, wpnams = parallel_sort(wpdims, wpnams)
 
     last = 0
-    last_title = "start"
+    last_title = "START"
     count = 0
+    stats_all = calc_stats(eles)
     for dim, title in zip(wpdims, wpnams):
         plt.figure()
         local_ele = eles[last:dim]
+        stats_local = calc_stats(local_ele)
+
         ax = plt.plot(local_ele)
         plt.title(f"{last_title} to {title}")
-        plt.xlabel("")
+        plt.xlabel(f"{round(stats_local['up'], -1):.0f}ft up; {round(stats_local['down'], -1):.0f}ft down")
         plt.ylabel("Elevation (ft)")
         plt.ylim([500, 2200])
         frame1 = plt.gca()
@@ -58,11 +61,26 @@ def main(_argv):
         last_title = title
         count += 1
         if count > 1:
-            break
+            #break
+            pass
 
     plt.show()
 
     pass
+
+def calc_stats(elevations):
+    last = elevations[0]
+    up = 0
+    down = 0
+    for el in elevations:
+        if el < last:
+            # going down
+            down += last - el
+        else:
+            up += el - last
+        last = el
+
+    return {"down": down, "up": up}
 
 def parallel_sort(X, Y):
     x_sorted = [x for _, x in natsorted(zip(Y, X))]
