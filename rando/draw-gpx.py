@@ -68,6 +68,9 @@ def main(_argv):
     last_title = "START"
     count = 0
     stats_all = calc_stats(eles)
+    full_el_range_low = round(min(eles), -2) - 100
+    full_el_range_high = round(max(eles), -2) + 100
+    full_el_range = full_el_range_high - full_el_range_low
     out_folder = definitions.ROOT_DIR / "out"
     out_folder.mkdir(parents=True, exist_ok=True)
     for dim, title in zip(wpdims, wpnams):
@@ -78,23 +81,33 @@ def main(_argv):
         marker_end = local_dist[-1]
         length = marker_end - marker_start
 
+        local_dist_rel = np.array(local_dist) - min(local_dist)
+
         # Plot it
-        plt.figure(figsize=(3, 6), dpi=80)
-        ax = plt.plot(local_dist, local_ele)
-        plt.title(f"{last_title} to {title}\n{length:.1f} miles, {marker_start:.1f} mi to {marker_end:.1f} mi")
-        plt.xlabel(f"{round(stats_local['up'], -1):.0f}ft up; {round(stats_local['down'], -1):.0f}ft down")
-        plt.ylabel("Elevation (ft)")
-        plt.ylim([500, 2200])
+        aid_station_label = f"{last_title}\nto\n{title}"
+        miles_label = f"{length:.1f} miles\n{marker_start:.1f} mi to {marker_end:.1f} mi"
+        elevation_label = f"{round(stats_local['up'], -1):.0f}ft up; {round(stats_local['down'], -1):.0f}ft down"
+        plt.figure(figsize=(4, 6), dpi=80)
+        plt.plot(local_dist_rel, local_ele)
+        plt.title(f"{aid_station_label}")
+        plt.xlabel(f"{miles_label}")
+        plt.xticks(np.arange(0, round(length) + 1))
+        plt.tick_params(axis="x", direction="in")
+        plt.ylabel(f"Elevation (ft)\n{elevation_label}")
+        plt.ylim([full_el_range_low, full_el_range_high])
+        plt.yticks(rotation=90)
         frame1 = plt.gca()
         frame1.axes.xaxis.set_ticklabels([])
+        aspect = full_el_range / (length*5280) / 4
+        frame1.axes.set_aspect(aspect)
         plt.tick_params(
             axis='x',  # changes apply to the x-axis
             which='both',  # both major and minor ticks are affected
-            bottom=False,  # ticks along the bottom edge are off
+            bottom=True,  # ticks along the bottom edge are off
             top=False,  # ticks along the top edge are off
             labelbottom=False)  # labels along the bottom edge are off
         outfile = out_folder / f"{title}.png"
-        plt.savefig(str(outfile), bbox_inches='tight')
+        plt.savefig(str(outfile))
 
         # Clean up
         last = dim
