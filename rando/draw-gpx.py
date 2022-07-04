@@ -19,12 +19,13 @@ import geopy.distance
 #  [x] Break up and label aid station to aid station
 #  [x] Label distance up vs down
 #  [x] Label # of miles
-#  [] Save to PNG
-#  [] Save on phone
-#  [] Adjust for readability on phone
+#  [x] Save to PNG
+#  [x] Save on phone
+#  [x] Adjust for readability on phone (1)
+# (^^ as of v0.0.1)
+#  [] Increase fonts for phone (2)
 #  [] Annotate the grade of each hill
 #  [] Post on reddit
-#  [] Make one for entire course?
 
 def main(_argv):
     gpxfile = definitions.DATA_DIR / "Eastern_States_100_Course_2021.gpx"
