@@ -1,3 +1,6 @@
+# Eastern States 100
+# Creating visualizations to show the vert between aid stations
+
 import sys
 import gpxpy
 import gpxpy.gpx
@@ -6,7 +9,22 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import spatial
 from natsort import natsorted
+import geopy.distance
 
+
+
+# TODO
+#  [x] Plot elevations vs index
+#  [x] Plot elevations vs distance
+#  [x] Break up and label aid station to aid station
+#  [x] Label distance up vs down
+#  [x] Label # of miles
+#  [] Save to PNG
+#  [] Save on phone
+#  [] Adjust for readability on phone
+#  [] Annotate the grade of each hill
+#  [] Post on reddit
+#  [] Make one for entire course?
 
 def main(_argv):
     gpxfile = definitions.DATA_DIR / "Eastern_States_100_Course_2021.gpx"
@@ -17,6 +35,14 @@ def main(_argv):
     lats = [pt.latitude for pt in gpx.tracks[0].segments[0].points]
     lons = [pt.longitude for pt in gpx.tracks[0].segments[0].points]
     eles = [pt.elevation * 39./12 for pt in gpx.tracks[0].segments[0].points]
+    # Calculate distances between each point
+    dists_rel = calculate_distance(lats, lons)
+    # Calculate the total distance to that point
+    dists_total = []
+    last = 0
+    for dist in dists_rel:
+        dists_total.append(last + dist)
+        last += dist
 
     # Load the waypoints
     wplats = [pt.latitude for pt in gpx.waypoints]
@@ -44,12 +70,16 @@ def main(_argv):
     stats_all = calc_stats(eles)
     for dim, title in zip(wpdims, wpnams):
         local_ele = eles[last:dim]
+        local_dist = dists_total[last:dim]
         stats_local = calc_stats(local_ele)
+        marker_start = local_dist[0]
+        marker_end = local_dist[-1]
+        length = marker_end - marker_start
 
         # Plot it
         plt.figure()
-        ax = plt.plot(local_ele)
-        plt.title(f"{last_title} to {title}")
+        ax = plt.plot(local_dist, local_ele)
+        plt.title(f"{last_title} to {title}\n{length:.1f} miles, {marker_start:.1f} mi to {marker_end:.1f} mi")
         plt.xlabel(f"{round(stats_local['up'], -1):.0f}ft up; {round(stats_local['down'], -1):.0f}ft down")
         plt.ylabel("Elevation (ft)")
         plt.ylim([500, 2200])
@@ -106,6 +136,18 @@ def parallel_sort(X, Y):
     y_sorted = natsorted(Y)
     return x_sorted, y_sorted
 
+
+def calculate_distance(lats, lons) -> list:
+    distances = [0]
+    last_lat = lats[0]
+    last_lon = lons[0]
+
+    for lat, lon in zip(lats, lons):
+        distances.append(geopy.distance.geodesic((lat, lon), (last_lat, last_lon)).miles)
+        last_lat = lat
+        last_lon = lon
+
+    return distances
 
 
 if __name__ == "__main__":
