@@ -68,6 +68,8 @@ def main(_argv):
     last_title = "START"
     count = 0
     stats_all = calc_stats(eles)
+    out_folder = definitions.ROOT_DIR / "out"
+    out_folder.mkdir(parents=True, exist_ok=True)
     for dim, title in zip(wpdims, wpnams):
         local_ele = eles[last:dim]
         local_dist = dists_total[last:dim]
@@ -77,7 +79,7 @@ def main(_argv):
         length = marker_end - marker_start
 
         # Plot it
-        plt.figure()
+        plt.figure(figsize=(3, 6), dpi=80)
         ax = plt.plot(local_dist, local_ele)
         plt.title(f"{last_title} to {title}\n{length:.1f} miles, {marker_start:.1f} mi to {marker_end:.1f} mi")
         plt.xlabel(f"{round(stats_local['up'], -1):.0f}ft up; {round(stats_local['down'], -1):.0f}ft down")
@@ -91,6 +93,8 @@ def main(_argv):
             bottom=False,  # ticks along the bottom edge are off
             top=False,  # ticks along the top edge are off
             labelbottom=False)  # labels along the bottom edge are off
+        outfile = out_folder / f"{title}.png"
+        plt.savefig(str(outfile), bbox_inches='tight')
 
         # Clean up
         last = dim
@@ -100,7 +104,7 @@ def main(_argv):
             #break
             pass
 
-    plt.show()
+    #plt.show()
 
     pass
 
