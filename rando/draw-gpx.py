@@ -86,20 +86,18 @@ def main(_argv):
         # Plot it
         aid_station_label = f"{last_title}\nto\n{title}"
         miles_label = f"{length:.1f} miles\n{marker_start:.1f} mi to {marker_end:.1f} mi"
-        elevation_label = f"{round(stats_local['up'], -1):.0f}ft up; {round(stats_local['down'], -1):.0f}ft down"
+        elevation_label = f"{round(stats_local['up'], -1):.0f}ft climb; {round(stats_local['down'], -1):.0f}ft descent"
         plt.figure(figsize=(4, 6), dpi=80)
         plt.plot(local_dist_rel, local_ele)
         plt.title(f"{aid_station_label}")
         plt.xlabel(f"{miles_label}")
+        plt.ylabel(f"Elevation (ft); {elevation_label}")
         plt.xticks(np.arange(0, round(length) + 1))
         plt.tick_params(axis="x", direction="in")
-        plt.ylabel(f"Elevation (ft)\n{elevation_label}")
         plt.ylim([full_el_range_low, full_el_range_high])
         plt.yticks(rotation=90)
         frame1 = plt.gca()
         frame1.axes.xaxis.set_ticklabels([])
-        aspect = full_el_range / (length*5280) / 4
-        frame1.axes.set_aspect(aspect)
         plt.tick_params(
             axis='x',  # changes apply to the x-axis
             which='both',  # both major and minor ticks are affected
