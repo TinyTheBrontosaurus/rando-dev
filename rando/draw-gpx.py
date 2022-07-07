@@ -182,7 +182,7 @@ def parallel_sort(X, Y):
 
 
 def calculate_distance(lats, lons) -> list:
-    distances = [0]
+    distances = []
     last_lat = lats[0]
     last_lon = lons[0]
 
