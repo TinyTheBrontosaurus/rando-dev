@@ -25,12 +25,53 @@ import geopy.distance
 # (^^ as of v0.0.1)
 #  [] Increase fonts for phone (2)
 #  [] Annotate the grade of each hill
-#  [] Post on reddit
+#  [x] Post on reddit
+#  [] Use custom waypoints (not build into gpx like ES100)
+#  [] Do & post VT 100
+
+VT100 = (
+    ("AS1 Densmore Hill", 7.0),
+    ("AS2 Dunham Hill", 11.5),
+    ("AS3 Taftsville Bridge	", 14.4),
+    ("AS4 So. Pomfret", 17.5),
+    ("AS5 Pretty House", 21.2),
+    ("AS6 U-Turn", 25.3),
+    ("AS7 Stage Rd", 30.5),
+    ("AS8 Route 12", 33.5),
+    ("AS9 Lincoln Covered Bridge", 38.3),
+    ("AS9a Barr House", 41.4),
+    ("AS10 Lillians", 44.3),
+    ("AS11 Camp 10 Bear", 47.4),
+    ("AS12 Pinky's", 51.5),
+    ("AS13 Birminghams", 54.0),
+    ("AS14 Margaritaville", 58.7),
+    ("AS15 Puckerbrush", 61.7),
+    ("AS16 Brown School House", 64.6),
+    ("AS17 Camp 10 Bear", 69.4),
+    ("AS18 Seabrook", 74.1),
+    ("AS19 Spirit of 76", 76.5),
+    ("AS20 Goodman's", 80.5),
+    ("AS21 Cow Shed", 83.2),
+    ("AS22 Bill's", 88.2),
+    ("AS23 Keating's", 92.5),
+    ("AS24 Polly's", 94.5),
+    ("FINISH LINE", 100)
+)
+infilename = "Vermont_100.gpx"
+custom_waypoints = VT100
+
+# infilename = "Eastern_States_100_Course_2021.gpx"
+# custom_waypoints = False
+
+
+
 
 def main(_argv):
-    gpxfile = definitions.DATA_DIR / "Eastern_States_100_Course_2021.gpx"
+    gpxfile = definitions.DATA_DIR / infilename
     with gpxfile.open('r') as f:
         gpx = gpxpy.parse(f)
+
+    subfolder_name = gpxfile.stem
 
     # Load track's the lat, lon, and elevation
     lats = [pt.latitude for pt in gpx.tracks[0].segments[0].points]
@@ -45,25 +86,12 @@ def main(_argv):
         dists_total.append(last + dist)
         last += dist
 
-    # Load the waypoints
-    wplats = [pt.latitude for pt in gpx.waypoints]
-    wplons = [pt.longitude for pt in gpx.waypoints]
-    wpnams = [pt.comment for pt in gpx.waypoints]
+    if not custom_waypoints:
+        waypoints = load_waypoints_from_gpx(gpx, lats, lons)
+        wpdims, wpnams = parallel_sort(*waypoints)
+    else:
+        wpdims, wpnams = load_waypoints_by_distance(dists_total, custom_waypoints)
 
-    # Convert to a numpy matrix of lats/lons
-    nplats = np.array(lats)
-    nplons = np.array(lons)
-    latlons = np.stack((nplats, nplons)).transpose()
-
-    # Calculate the index into the track arrays for each waypoint. That is, the closest lat/lon
-    # corresponding to that waypoint's lat/lon
-    wpdims = []
-    for wplat, wplon, wpnam in zip(wplats, wplons, wpnams):
-        pt = (wplat, wplon)
-        _distance, idx = spatial.KDTree(latlons).query(pt)
-        wpdims.append(idx)
-
-    wpdims, wpnams = parallel_sort(wpdims, wpnams)
 
     last = 0
     last_title = "START"
@@ -72,7 +100,7 @@ def main(_argv):
     full_el_range_low = round(min(eles), -2) - 100
     full_el_range_high = round(max(eles), -2) + 100
     full_el_range = full_el_range_high - full_el_range_low
-    out_folder = definitions.ROOT_DIR / "out"
+    out_folder = definitions.ROOT_DIR / "out" / subfolder_name
     out_folder.mkdir(parents=True, exist_ok=True)
     for dim, title in zip(wpdims, wpnams):
         local_ele = eles[last:dim]
@@ -112,7 +140,7 @@ def main(_argv):
         last = dim
         last_title = title
         count += 1
-        if count > 1:
+        if count > 25:
             #break
             pass
 
@@ -165,6 +193,34 @@ def calculate_distance(lats, lons) -> list:
 
     return distances
 
+
+def load_waypoints_from_gpx(gpx, lats, lons):
+    # Load the waypoints
+    wplats = [pt.latitude for pt in gpx.waypoints]
+    wplons = [pt.longitude for pt in gpx.waypoints]
+    wpnams = [pt.comment for pt in gpx.waypoints]
+
+    # Convert to a numpy matrix of lats/lons
+    nplats = np.array(lats)
+    nplons = np.array(lons)
+    latlons = np.stack((nplats, nplons)).transpose()
+
+    # Calculate the index into the track arrays for each waypoint. That is, the closest lat/lon
+    # corresponding to that waypoint's lat/lon
+    wpdims = []
+    for wplat, wplon, wpnam in zip(wplats, wplons, wpnams):
+        pt = (wplat, wplon)
+        _distance, idx = spatial.KDTree(latlons).query(pt)
+        wpdims.append(idx)
+
+    return wpdims, wpnams
+
+def load_waypoints_by_distance(dists_total, aid_stations):
+    as_names = [x[0] for x in aid_stations]
+    as_distances = [x[1] for x in aid_stations]
+    wpdims = np.searchsorted(dists_total, as_distances, side='left', sorter=None)
+
+    return wpdims, as_names
 
 if __name__ == "__main__":
     main(sys.argv[1:])
