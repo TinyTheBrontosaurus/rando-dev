@@ -23,11 +23,12 @@ import geopy.distance
 #  [x] Save on phone
 #  [x] Adjust for readability on phone (1)
 # (^^ as of v0.0.1)
+#  [x] Post on reddit
+#  [x] Use custom waypoints (not build into gpx like ES100)
+#  [x] Do & post VT 100
+# (^^ as of v0.0.2)
 #  [] Increase fonts for phone (2)
 #  [] Annotate the grade of each hill
-#  [x] Post on reddit
-#  [] Use custom waypoints (not build into gpx like ES100)
-#  [] Do & post VT 100
 
 VT100 = (
     ("AS1 Densmore Hill", 7.0),
