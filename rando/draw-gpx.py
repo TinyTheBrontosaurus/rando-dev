@@ -69,16 +69,16 @@ VT100 = (
 
 if race == "VT100_strava":
     infilename = "Vermont_100.gpx"
-    custom_waypoints = VT100
+    custom_aid_stations = VT100
 elif race == "VT100_garmin":
     infilename = "COURSE_22875310.gpx"
-    custom_waypoints = VT100
+    custom_aid_stations = VT100
 elif race == "ES100":
     infilename = "Eastern_States_100_Course_2021.gpx"
-    custom_waypoints = False
+    custom_aid_stations = False
 elif race == "Leadville":
     infilename = "Leadville_100_Run.gpx"
-    custom_waypoints = False
+    custom_aid_stations = False
 else:
     raise ValueError(f"Unknown race: {race}")
 
@@ -133,25 +133,26 @@ def main(_argv):
 
     full_race = load_full_race(gpx)
 
-    # Load the aid stations
-    if not custom_waypoints:
-        waypoints = load_waypoints_from_gpx(gpx)
-        wpdims, wpnams = parallel_sort(*waypoints)
+    # Load the aid stations (as)
+    if not custom_aid_stations:
+        aid_stations = load_aid_stations_from_gpx(gpx)
+        asis, asnames = parallel_sort(*aid_stations)
     else:
-        wpdims, wpnams = load_waypoints_by_distance(full_race.along, custom_waypoints)
+        asis, asnames = load_aid_stations_by_distance(full_race.along, custom_aid_stations)
 
 
-    last = 0
-    last_title = "START"
+    # as => aid station
+    last_asi = 0
+    last_as_title = "START"
     count = 0
     out_folder = definitions.ROOT_DIR / "out" / subfolder_name
     out_folder.mkdir(parents=True, exist_ok=True)
-    for dim, title in zip(wpdims, wpnams):
+    for asi, as_title in zip(asis, asnames):
         # Grab the segment
-        segment = full_race.get_segment(last, dim)
+        segment = full_race.get_segment(last_asi, asi)
 
         # Create labels
-        aid_station_label = f"{last_title}\nto\n{title}"
+        aid_station_label = f"{last_as_title}\nto\n{as_title}"
         miles_label = f"{segment.length:.1f} miles\n{segment.start:.1f} mi to {segment.end:.1f} mi"
         elevation_label = f"{round(segment.stats['up'], -1):.0f}ft climb; {round(segment.stats['down'], -1):.0f}ft descent"
         # Plot it
@@ -176,20 +177,18 @@ def main(_argv):
             labelbottom=False)  # labels along the bottom edge are off
 
         # Save to file
-        outfile = out_folder / f"{title}.png"
+        outfile = out_folder / f"{as_title}.png"
         plt.savefig(str(outfile))
 
         # Clean up
-        last = dim
-        last_title = title
+        last_asi = asi
+        last_as_title = as_title
         count += 1
         if count >= count_to_show and show:
             break
 
     if show:
         plt.show()
-
-    pass
 
 
 def calc_stats(elevations) -> dict:
@@ -237,7 +236,7 @@ def calculate_distance(lats, lons) -> list:
     return distances
 
 
-def load_waypoints_from_gpx(gpx):
+def load_aid_stations_from_gpx(gpx):
     lats = [pt.latitude for pt in gpx.tracks[0].segments[0].points]
     lons = [pt.longitude for pt in gpx.tracks[0].segments[0].points]
 
@@ -261,7 +260,7 @@ def load_waypoints_from_gpx(gpx):
 
     return wpdims, wpnams
 
-def load_waypoints_by_distance(dists_total, aid_stations):
+def load_aid_stations_by_distance(dists_total, aid_stations):
     as_names = [x[0] for x in aid_stations]
     as_distances = [x[1] for x in aid_stations]
     wpdims = np.searchsorted(dists_total, as_distances, side='left', sorter=None)
