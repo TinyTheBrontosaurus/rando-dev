@@ -32,7 +32,7 @@ from dataclasses import dataclass
 
 
 # Lazy configs
-count_to_show = 2
+count_to_show = 134
 show = True
 race = "ES100"
 
@@ -94,7 +94,7 @@ class Track:
 
     @property
     def vert_max(self):
-        return round(max(self.vert), -2) - 100
+        return round(max(self.vert), -2) + 100
 
     @property
     def vert_min(self):
@@ -150,6 +150,8 @@ def main(_argv):
     for asi, as_title in zip(asis, asnames):
         # Grab the segment
         segment = full_race.get_segment(last_asi, asi)
+
+        #rdp_snapped(segment.along_local * 5280, segment.vert)
 
         # Create labels
         aid_station_label = f"{last_as_title}\nto\n{as_title}"
@@ -286,6 +288,39 @@ def load_full_race(gpx):
     return Track(along=np.array(dists_total),
                  vert=np.array(eles))
 
+def rdp(xs_in, ys_in):
+
+    angle_snap = 0.5
+
+    xs = np.expand_dims(xs_in, axis=0)
+    ys = np.expand_dims(ys_in, axis=0)
+    points = np.concatenate((xs, ys))
+
+    # get the start and end points
+    start = points[:, 0]
+    end = points[:, -1]
+
+    # find distance from other_points to line formed by start and end
+    dist_point_to_line = np.abs(np.cross(end - start, points.T - start)) / np.linalg.norm(end - start)
+    # get the index of the points with the largest distance
+    max_idx = np.argmax(dist_point_to_line)
+    max_value = dist_point_to_line[max_idx]
+
+    result = []
+    if max_value > 400:
+        partial_results_left = rdp(points[:max_idx+1], epsilon)
+        result += [list(i) for i in partial_results_left if list(i) not in result]
+        partial_results_right = rdp(points[max_idx:], epsilon)
+        result += [list(i) for i in partial_results_right if list(i) not in result]
+    else:
+        result += [points[0], points[-1]]
+
+    return result
+
 
 if __name__ == "__main__":
+    # rdp_snapped(
+    #     xs_in=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    #     ys_in=[0, 0.25, 0.25, 0.25, 0.25, 0, 0, 0, 0, -0.25, -0.25]
+    # )
     main(sys.argv[1:])
