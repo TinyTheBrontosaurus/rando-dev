@@ -27,8 +27,9 @@ from dataclasses import dataclass
 #  [x] Use custom waypoints (not build into gpx like ES100)
 #  [x] Do & post VT 100
 # (^^ as of v0.0.2)
+#  [x] Annotate the grade of each hill
+#  [] Make the grade annotation look nicer (2)
 #  [] Increase fonts for phone (2)
-#  [] Annotate the grade of each hill
 
 
 # Lazy configs
