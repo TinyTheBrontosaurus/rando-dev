@@ -151,7 +151,12 @@ def main(_argv):
         # Grab the segment
         segment = full_race.get_segment(last_asi, asi)
 
-        #rdp_snapped(segment.along_local * 5280, segment.vert)
+        sample_points = np.concatenate([
+            np.expand_dims(segment.along_local * 5280, axis=-1),
+            np.expand_dims(segment.vert, axis=-1)
+        ], axis=-1)
+
+        simplified = rdp(sample_points, 300)
 
         # Create labels
         aid_station_label = f"{last_as_title}\nto\n{as_title}"
@@ -160,6 +165,8 @@ def main(_argv):
         # Plot it
         plt.figure(figsize=(4, 6), dpi=80)
         plt.plot(segment.along_local, segment.vert)
+
+        plt.plot(simplified[:, 0] / 5280, simplified[:, 1], color='r', marker='o')
 
         # Fancy up the axes
         plt.title(f"{aid_station_label}")
@@ -288,26 +295,19 @@ def load_full_race(gpx):
     return Track(along=np.array(dists_total),
                  vert=np.array(eles))
 
-def rdp(xs_in, ys_in):
-
-    angle_snap = 0.5
-
-    xs = np.expand_dims(xs_in, axis=0)
-    ys = np.expand_dims(ys_in, axis=0)
-    points = np.concatenate((xs, ys))
-
+def rdp(points, epsilon):
     # get the start and end points
-    start = points[:, 0]
-    end = points[:, -1]
+    start = np.tile(np.expand_dims(points[0], axis=0), (points.shape[0], 1))
+    end = np.tile(np.expand_dims(points[-1], axis=0), (points.shape[0], 1))
 
     # find distance from other_points to line formed by start and end
-    dist_point_to_line = np.abs(np.cross(end - start, points.T - start)) / np.linalg.norm(end - start)
+    dist_point_to_line = np.abs(np.cross(end - start, points - start, axis=-1)) / np.linalg.norm(end - start, axis=-1)
     # get the index of the points with the largest distance
     max_idx = np.argmax(dist_point_to_line)
     max_value = dist_point_to_line[max_idx]
 
     result = []
-    if max_value > 400:
+    if max_value > epsilon:
         partial_results_left = rdp(points[:max_idx+1], epsilon)
         result += [list(i) for i in partial_results_left if list(i) not in result]
         partial_results_right = rdp(points[max_idx:], epsilon)
@@ -315,7 +315,7 @@ def rdp(xs_in, ys_in):
     else:
         result += [points[0], points[-1]]
 
-    return result
+    return np.array(result)
 
 
 if __name__ == "__main__":
