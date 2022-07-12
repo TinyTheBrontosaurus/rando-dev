@@ -79,6 +79,9 @@ elif race == "ES100":
 elif race == "Leadville":
     infilename = "Leadville_100_Run.gpx"
     custom_aid_stations = False
+elif race == "loon":
+    infilename = "loon_mountain_race.gpx"
+    custom_aid_stations = (("FINISH", 7),)
 else:
     raise ValueError(f"Unknown race: {race}")
 
@@ -156,7 +159,9 @@ def main(_argv):
             np.expand_dims(segment.vert, axis=-1)
         ], axis=-1)
 
-        simplified = rdp(sample_points, 300)
+        simplified = rdp(sample_points, 150)
+
+        gradients = np.round((90-np.arctan2(*np.diff(simplified, axis=0).T)*180/np.pi)*2)/2
 
         # Create labels
         aid_station_label = f"{last_as_title}\nto\n{as_title}"
@@ -167,6 +172,13 @@ def main(_argv):
         plt.plot(segment.along_local, segment.vert)
 
         plt.plot(simplified[:, 0] / 5280, simplified[:, 1], color='r', marker='o')
+
+        # Draw gradients
+        offset = 0
+        for grad, along in zip(gradients, simplified[:-1, 0]):
+            plt.annotate(f"{grad:.1f}°", (along/5280, full_race.vert_min + offset))
+            offset += 100
+
 
         # Fancy up the axes
         plt.title(f"{aid_station_label}")
