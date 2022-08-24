@@ -1,18 +1,5 @@
 # Eastern States 100
 # Creating visualizations to performance
-
-import sys
-import gpxpy
-import gpxpy.gpx
-from rando import definitions
-import matplotlib.pyplot as plt
-import numpy as np
-from scipy import spatial, signal
-from natsort import natsorted
-import geopy.distance
-from dataclasses import dataclass
-
-
 # TODO
 #  [ ] Load gpx
 #  [ ] Load aid station locations
@@ -42,3 +29,37 @@ from dataclasses import dataclass
 #  [ ] Live logging.
 #  [ ] Live sharing w/ intermittent connections
 #  [ ] Audio cues. halfway to aid station. off trail. wrong way.
+
+
+import sys
+import argparse
+from pathlib import Path
+from . import draw_gpx
+import gpxpy
+import gpxpy.gpx
+from rando import definitions
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import spatial, signal
+from natsort import natsorted
+import geopy.distance
+from dataclasses import dataclass
+
+
+def main(argv):
+    parser = argparse.ArgumentParser(description="Ultramarathon analysis script")
+
+    parser.add_argument("actual_race", type=Path, help="Path to GPX file of the race to analyze")
+    parser.add_argument("aid_stations", type=Path, help="Path to GPX file for the aid station locations")
+
+    args = parser.parse_args(argv)
+
+    race_gpx = args.actual_race
+    as_cfg = args.aid_stations
+
+    draw_gpx.load_full_race(race_gpx)
+    draw_gpx
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
