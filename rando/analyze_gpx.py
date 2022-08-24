@@ -3,6 +3,7 @@
 # TODO
 #  [ ] Load gpx
 #  [ ] Load aid station locations
+#  [ ] Add a gpx-to-something-faster quick loader
 #  [ ] Measure time in aid stations & time to finish
 #  [ ] Plot time in aid stations; compare to crewed aid stations
 #  [ ] Measure % of time in aid stations
@@ -34,7 +35,7 @@
 import sys
 import argparse
 from pathlib import Path
-from . import draw_gpx
+from rando import draw_gpx
 import gpxpy
 import gpxpy.gpx
 from rando import definitions
@@ -54,11 +55,17 @@ def main(argv):
 
     args = parser.parse_args(argv)
 
-    race_gpx = args.actual_race
-    as_cfg = args.aid_stations
+    with args.actual_race.open('r') as f:
+        gpx = gpxpy.parse(f)
+    race_track = draw_gpx.load_full_race(gpx)
 
-    draw_gpx.load_full_race(race_gpx)
-    draw_gpx
+    with args.aid_stations.open('r') as f:
+        gpx = gpxpy.parse(f)
+    aid_stations = draw_gpx.load_aid_stations_from_gpx(gpx)
+
+
+    foo = 1
+    pass
 
 
 if __name__ == "__main__":
