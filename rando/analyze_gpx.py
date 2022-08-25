@@ -45,6 +45,32 @@ from scipy import spatial, signal
 from natsort import natsorted
 import geopy.distance
 from dataclasses import dataclass
+from loguru import logger
+import pickle
+
+def load_gpx_from_cache(file: Path):
+    """
+    Load a GPX file. If it's not in the cache, the load it before picking it to cache.
+    If it is in cache, just load the pickle'd version. About 5-10x faster
+    :param file: The file to open
+    :return: Parsed GPX
+    """
+    cache_filename: Path = definitions.CACHE_DIR / (file.name + ".cache")
+    if not cache_filename.exists():
+        # Load the file
+        logger.info("Cache miss {filename}", filename=str(file))
+        with file.open('r') as f:
+            gpx = gpxpy.parse(f)
+        logger.info("Filling cache")
+        definitions.CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        with cache_filename.open("wb") as f:
+            pickle.dump(gpx, f)
+
+    else:
+        logger.info("Cache hit {filename}", filename=str(file))
+        with cache_filename.open("rb") as f:
+            gpx = pickle.load(f)
+    return gpx
 
 
 def main(argv):
@@ -55,12 +81,10 @@ def main(argv):
 
     args = parser.parse_args(argv)
 
-    with args.actual_race.open('r') as f:
-        gpx = gpxpy.parse(f)
+    gpx = load_gpx_from_cache(args.actual_race)
     race_track = draw_gpx.load_full_race(gpx)
 
-    with args.aid_stations.open('r') as f:
-        gpx = gpxpy.parse(f)
+    gpx = load_gpx_from_cache(args.aid_stations)
     aid_stations = draw_gpx.load_aid_stations_from_gpx(gpx)
 
 
