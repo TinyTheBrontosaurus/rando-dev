@@ -47,8 +47,9 @@ import geopy.distance
 from dataclasses import dataclass
 from loguru import logger
 import pickle
+import json
 
-def load_gpx_from_cache(file: Path):
+def load_gpx_from_cache(file: Path, force_load=False):
     """
     Load a GPX file. If it's not in the cache, the load it before picking it to cache.
     If it is in cache, just load the pickle'd version. About 5-10x faster
@@ -56,21 +57,34 @@ def load_gpx_from_cache(file: Path):
     :return: Parsed GPX
     """
     cache_filename: Path = definitions.CACHE_DIR / (file.name + ".cache")
-    if not cache_filename.exists():
+    if force_load or not cache_filename.exists():
         # Load the file
         logger.info("Cache miss {filename}", filename=str(file))
         with file.open('r') as f:
             gpx = gpxpy.parse(f)
         logger.info("Filling cache")
         definitions.CACHE_DIR.mkdir(parents=True, exist_ok=True)
-        with cache_filename.open("wb") as f:
-            pickle.dump(gpx, f)
+
+        lats = [pt.latitude for pt in gpx.tracks[0].segments[0].points]
+        lons = [pt.longitude for pt in gpx.tracks[0].segments[0].points]
+        eles = [pt.elevation * 39. / 12 for pt in gpx.tracks[0].segments[0].points]
+        times = [str(pt.time) for pt in gpx.tracks[0].segments[0].points]
+
+        loaded = {
+            "lat": lats,
+            "lon": lons,
+            "ele": eles,
+            "time": times,
+        }
+
+        with cache_filename.open("w") as f:
+            json.dump(loaded, f)
 
     else:
         logger.info("Cache hit {filename}", filename=str(file))
         with cache_filename.open("rb") as f:
-            gpx = pickle.load(f)
-    return gpx
+            loaded = json.load(f)
+    return loaded
 
 
 def main(argv):
@@ -78,13 +92,14 @@ def main(argv):
 
     parser.add_argument("actual_race", type=Path, help="Path to GPX file of the race to analyze")
     parser.add_argument("aid_stations", type=Path, help="Path to GPX file for the aid station locations")
+    parser.add_argument("--ignore-cache", action="store_true", help="Ignore the cache")
 
     args = parser.parse_args(argv)
 
-    gpx = load_gpx_from_cache(args.actual_race)
+    gpx = load_gpx_from_cache(args.actual_race, force_load=args.ignore_cache)
     race_track = draw_gpx.load_full_race(gpx)
 
-    gpx = load_gpx_from_cache(args.aid_stations)
+    gpx = load_gpx_from_cache(args.aid_stations, force_load=args.ignore_cache)
     aid_stations = draw_gpx.load_aid_stations_from_gpx(gpx)
 
 
