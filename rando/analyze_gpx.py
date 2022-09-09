@@ -39,14 +39,7 @@ from rando import draw_gpx
 import gpxpy
 import gpxpy.gpx
 from rando import definitions
-import matplotlib.pyplot as plt
-import numpy as np
-from scipy import spatial, signal
-from natsort import natsorted
-import geopy.distance
-from dataclasses import dataclass
 from loguru import logger
-import pickle
 import json
 
 def load_gpx_from_cache(file: Path, force_load=False):
@@ -96,11 +89,11 @@ def main(argv):
 
     args = parser.parse_args(argv)
 
-    gpx = load_gpx_from_cache(args.actual_race, force_load=args.ignore_cache)
-    race_track = draw_gpx.load_full_race(gpx)
+    race_track_dict = load_gpx_from_cache(args.actual_race, force_load=args.ignore_cache)
+    #race_track = draw_gpx.load_full_race(gpx)
 
-    gpx = load_gpx_from_cache(args.aid_stations, force_load=args.ignore_cache)
-    aid_stations = draw_gpx.load_aid_stations_from_gpx(gpx)
+    aid_stations_dict = load_gpx_from_cache(args.aid_stations, force_load=args.ignore_cache)
+    #aid_stations = draw_gpx.load_aid_stations_from_gpx(gpx)
 
 
     foo = 1
