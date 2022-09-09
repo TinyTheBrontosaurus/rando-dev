@@ -84,7 +84,7 @@ else:
 
 
 @dataclass
-class Track:
+class AlongVertTrack:
     along: np.array
     vert: np.array
 
@@ -105,7 +105,7 @@ class Track:
         return self.vert_max - self.vert_min
 
     def get_segment(self, fromi, toi):
-        return Track(along=self.along[fromi:toi], vert=self.vert[fromi:toi])
+        return AlongVertTrack(along=self.along[fromi:toi], vert=self.vert[fromi:toi])
 
     @property
     def start(self):
@@ -283,8 +283,8 @@ def load_full_race(gpx):
         dists_total.append(last + dist)
         last += dist
 
-    return Track(along=np.array(dists_total),
-                 vert=np.array(eles))
+    return AlongVertTrack(along=np.array(dists_total),
+                          vert=np.array(eles))
 
 
 if __name__ == "__main__":
