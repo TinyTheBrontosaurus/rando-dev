@@ -34,13 +34,39 @@
 
 import sys
 import argparse
+import json
+import datetime
+from typing import List
 from pathlib import Path
-from rando import draw_gpx
+from dataclasses import dataclass
+import numpy as np
 import gpxpy
 import gpxpy.gpx
 from rando import definitions
 from loguru import logger
-import json
+from rando.draw_gpx import calculate_distance, AlongVertTrack
+
+
+@dataclass
+class Track:
+    lat: np.array
+    lon: np.array
+    ele: np.array
+    time: List[datetime.datetime]
+
+    def get_along_vert_track(self):
+        distance_between_points = calculate_distance(self.lat, self.lon)
+
+        # Calculate the total distance to that point
+        dists_total = []
+        last = 0
+        for dist in distance_between_points:
+            dists_total.append(last + dist)
+            last += dist
+
+        return AlongVertTrack(along=np.array(dists_total),
+                              vert=np.array(self.ele))
+
 
 def load_gpx_from_cache(file: Path, force_load=False):
     """
@@ -95,8 +121,6 @@ def main(argv):
     aid_stations_dict = load_gpx_from_cache(args.aid_stations, force_load=args.ignore_cache)
     #aid_stations = draw_gpx.load_aid_stations_from_gpx(gpx)
 
-
-    foo = 1
     pass
 
 
