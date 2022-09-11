@@ -34,76 +34,8 @@
 
 import sys
 import argparse
-import json
-import datetime
-from typing import List
 from pathlib import Path
-from dataclasses import dataclass
-import numpy as np
-import gpxpy
-import gpxpy.gpx
-from rando import definitions
-from loguru import logger
-from rando.draw_gpx import calculate_distance, AlongVertTrack
-
-
-@dataclass
-class Track:
-    lat: np.array
-    lon: np.array
-    ele: np.array
-    time: List[datetime.datetime]
-
-    def get_along_vert_track(self):
-        distance_between_points = calculate_distance(self.lat, self.lon)
-
-        # Calculate the total distance to that point
-        dists_total = []
-        last = 0
-        for dist in distance_between_points:
-            dists_total.append(last + dist)
-            last += dist
-
-        return AlongVertTrack(along=np.array(dists_total),
-                              vert=np.array(self.ele))
-
-
-def load_gpx_from_cache(file: Path, force_load=False):
-    """
-    Load a GPX file. If it's not in the cache, the load it before picking it to cache.
-    If it is in cache, just load the pickle'd version. About 5-10x faster
-    :param file: The file to open
-    :return: Parsed GPX
-    """
-    cache_filename: Path = definitions.CACHE_DIR / (file.name + ".cache")
-    if force_load or not cache_filename.exists():
-        # Load the file
-        logger.info("Cache miss {filename}", filename=str(file))
-        with file.open('r') as f:
-            gpx = gpxpy.parse(f)
-        logger.info("Filling cache")
-        definitions.CACHE_DIR.mkdir(parents=True, exist_ok=True)
-
-        lats = [pt.latitude for pt in gpx.tracks[0].segments[0].points]
-        lons = [pt.longitude for pt in gpx.tracks[0].segments[0].points]
-        eles = [pt.elevation * 39. / 12 for pt in gpx.tracks[0].segments[0].points]
-        times = [str(pt.time) for pt in gpx.tracks[0].segments[0].points]
-
-        loaded = {
-            "lat": lats,
-            "lon": lons,
-            "ele": eles,
-            "time": times,
-        }
-
-        with cache_filename.open("w") as f:
-            json.dump(loaded, f)
-
-    else:
-        logger.info("Cache hit {filename}", filename=str(file))
-        with cache_filename.open("rb") as f:
-            loaded = json.load(f)
-    return loaded
+from rando.io import load_gpx_from_cache
 
 
 def main(argv):

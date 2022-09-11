@@ -1,3 +1,11 @@
+import datetime
+from typing import List
+from dataclasses import dataclass
+import numpy as np
+from natsort import natsorted
+import geopy
+
+
 @dataclass
 class AlongVertTrack:
     along: np.array
@@ -38,6 +46,26 @@ class AlongVertTrack:
     def along_local(self):
         return self.along - self.along[0]
 
+
+@dataclass
+class Track:
+    lat: np.array
+    lon: np.array
+    ele: np.array
+    time: List[datetime.datetime]
+
+    def get_along_vert_track(self):
+        distance_between_points = calculate_distance(self.lat, self.lon)
+
+        # Calculate the total distance to that point
+        dists_total = []
+        last = 0
+        for dist in distance_between_points:
+            dists_total.append(last + dist)
+            last += dist
+
+        return AlongVertTrack(along=np.array(dists_total),
+                              vert=np.array(self.ele))
 
 
 

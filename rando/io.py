@@ -1,6 +1,13 @@
 import numpy as np
 from scipy import spatial
-from rando.track import AlongVertTrack, calculate_distance
+import json
+from pathlib import Path
+import gpxpy
+import gpxpy.gpx
+from loguru import logger
+from rando import definitions
+from rando.track import calculate_distance, AlongVertTrack
+
 
 def load_aid_stations_from_gpx(gpx):
     lats = [pt.latitude for pt in gpx.tracks[0].segments[0].points]
@@ -51,3 +58,42 @@ def load_full_race(gpx):
 
     return AlongVertTrack(along=np.array(dists_total),
                           vert=np.array(eles))
+
+
+
+def load_gpx_from_cache(file: Path, force_load=False):
+    """
+    Load a GPX file. If it's not in the cache, the load it before picking it to cache.
+    If it is in cache, just load the pickle'd version. About 5-10x faster
+    :param file: The file to open
+    :return: Parsed GPX
+    """
+    cache_filename: Path = definitions.CACHE_DIR / (file.name + ".cache")
+    if force_load or not cache_filename.exists():
+        # Load the file
+        logger.info("Cache miss {filename}", filename=str(file))
+        with file.open('r') as f:
+            gpx = gpxpy.parse(f)
+        logger.info("Filling cache")
+        definitions.CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+        lats = [pt.latitude for pt in gpx.tracks[0].segments[0].points]
+        lons = [pt.longitude for pt in gpx.tracks[0].segments[0].points]
+        eles = [pt.elevation * 39. / 12 for pt in gpx.tracks[0].segments[0].points]
+        times = [str(pt.time) for pt in gpx.tracks[0].segments[0].points]
+
+        loaded = {
+            "lat": lats,
+            "lon": lons,
+            "ele": eles,
+            "time": times,
+        }
+
+        with cache_filename.open("w") as f:
+            json.dump(loaded, f)
+
+    else:
+        logger.info("Cache hit {filename}", filename=str(file))
+        with cache_filename.open("rb") as f:
+            loaded = json.load(f)
+    return loaded
