@@ -1,18 +1,6 @@
 # Eastern States 100
 # Creating visualizations to show the vert between aid stations
 
-import sys
-import gpxpy
-import gpxpy.gpx
-from rando import definitions
-import matplotlib.pyplot as plt
-import numpy as np
-from scipy import spatial, signal
-from natsort import natsorted
-import geopy.distance
-from dataclasses import dataclass
-
-
 # TODO
 #  [x] Plot elevations vs index
 #  [x] Plot elevations vs distance
@@ -30,6 +18,16 @@ from dataclasses import dataclass
 #  [] Increase fonts for phone (2)
 #  [] Annotate the grade of each hill
 
+
+import sys
+import gpxpy
+import gpxpy.gpx
+from rando import definitions
+import matplotlib.pyplot as plt
+import numpy as np
+
+from rando.io import load_aid_stations_from_gpx, load_full_race, load_aid_stations_by_distance
+from rando.track import parallel_sort
 
 # Lazy configs
 count_to_show = 2
@@ -82,46 +80,6 @@ elif race == "Leadville":
 else:
     raise ValueError(f"Unknown race: {race}")
 
-
-@dataclass
-class AlongVertTrack:
-    along: np.array
-    vert: np.array
-
-    @property
-    def stats(self):
-        return calc_stats(self.vert)
-
-    @property
-    def vert_max(self):
-        return round(max(self.vert), -2) - 100
-
-    @property
-    def vert_min(self):
-        return round(min(self.vert), -2) - 100
-
-    @property
-    def vert_range(self):
-        return self.vert_max - self.vert_min
-
-    def get_segment(self, fromi, toi):
-        return AlongVertTrack(along=self.along[fromi:toi], vert=self.vert[fromi:toi])
-
-    @property
-    def start(self):
-        return self.along[0]
-
-    @property
-    def end(self):
-        return self.along[-1]
-
-    @property
-    def length(self):
-        return self.end - self.start
-
-    @property
-    def along_local(self):
-        return self.along - self.along[0]
 
 
 def main(_argv):
@@ -191,100 +149,6 @@ def main(_argv):
         plt.show()
 
 
-def calc_stats(elevations) -> dict:
-    """
-    Calculate basic statistics given an elevation curve
-    :param elevations: Array of elevations
-    :return: Dictionary of stats
-    """
-    last = elevations[0]
-    up = 0
-    down = 0
-    for el in elevations:
-        if el < last:
-            # going down
-            down += last - el
-        else:
-            up += el - last
-        last = el
-
-    return {"down": down, "up": up}
-
-
-def parallel_sort(X, Y):
-    """
-    Sort two parallel arrays (X & Y) by one of the arrays (Y)
-    :param X:
-    :param Y:
-    :return: Both, sorted by Y
-    """
-    x_sorted = [x for _, x in natsorted(zip(Y, X))]
-    y_sorted = natsorted(Y)
-    return x_sorted, y_sorted
-
-
-def calculate_distance(lats, lons) -> list:
-    distances = []
-    last_lat = lats[0]
-    last_lon = lons[0]
-
-    for lat, lon in zip(lats, lons):
-        distances.append(geopy.distance.geodesic((lat, lon), (last_lat, last_lon)).miles)
-        last_lat = lat
-        last_lon = lon
-
-    return distances
-
-
-def load_aid_stations_from_gpx(gpx):
-    lats = [pt.latitude for pt in gpx.tracks[0].segments[0].points]
-    lons = [pt.longitude for pt in gpx.tracks[0].segments[0].points]
-
-    # Load the waypoints
-    wplats = [pt.latitude for pt in gpx.waypoints]
-    wplons = [pt.longitude for pt in gpx.waypoints]
-    wpnams = [pt.comment for pt in gpx.waypoints]
-
-    # Convert to a numpy matrix of lats/lons
-    nplats = np.array(lats)
-    nplons = np.array(lons)
-    latlons = np.stack((nplats, nplons)).transpose()
-
-    # Calculate the index into the track arrays for each waypoint. That is, the closest lat/lon
-    # corresponding to that waypoint's lat/lon
-    wpdims = []
-    for wplat, wplon, wpnam in zip(wplats, wplons, wpnams):
-        pt = (wplat, wplon)
-        _distance, idx = spatial.KDTree(latlons).query(pt)
-        wpdims.append(idx)
-
-    return wpdims, wpnams
-
-def load_aid_stations_by_distance(dists_total, aid_stations):
-    as_names = [x[0] for x in aid_stations]
-    as_distances = [x[1] for x in aid_stations]
-    wpdims = np.searchsorted(dists_total, as_distances, side='left', sorter=None)
-
-    return wpdims, as_names
-
-
-def load_full_race(gpx):
-    # Load track's the lat, lon, and elevation
-    lats = [pt.latitude for pt in gpx.tracks[0].segments[0].points]
-    lons = [pt.longitude for pt in gpx.tracks[0].segments[0].points]
-    eles = [pt.elevation * 39. / 12 for pt in gpx.tracks[0].segments[0].points]
-
-    distance_between_points = calculate_distance(lats, lons)
-
-    # Calculate the total distance to that point
-    dists_total = []
-    last = 0
-    for dist in distance_between_points:
-        dists_total.append(last + dist)
-        last += dist
-
-    return AlongVertTrack(along=np.array(dists_total),
-                          vert=np.array(eles))
 
 
 if __name__ == "__main__":
