@@ -32,8 +32,8 @@ from dataclasses import dataclass
 
 
 # Lazy configs
-count_to_show = 2
-show = True
+count_to_show = 999
+show = False
 race = "Canyons 100k 2023"
 
 
@@ -67,6 +67,21 @@ VT100 = (
     ("FINISH LINE", 100)
 )
 
+Canyons100k2023 = (
+    ("01-HS1 No Hands 1", 3.5),
+    ("02-AS1 Cool 1", 6.5),
+    ("03-AS2 Cool 2", 14.3),
+    ("04-AS3 Browns Bar 1", 18.5),
+    ("05-AS4 ALT", 23.9),
+    ("06-AS5 Browns Bar 2", 30.3),
+    ("07-HS2 No Hands 2", 36.4),
+    ("08-AS6 Mammoth Bar", 40.4),
+    ("09-AS7 Drivers Flat", 48.3),
+    ("10-AS8 Clementine", 56.7),
+    ("11-HS3 No Hands 3", 60.4),
+    ("12-Downtown Auburn - Finish", 63.9)
+)
+
 if race == "VT100_strava":
     infilename = "Vermont_100.gpx"
     custom_aid_stations = VT100
@@ -80,8 +95,8 @@ elif race == "Leadville":
     infilename = "Leadville_100_Run.gpx"
     custom_aid_stations = False
 elif race == "Canyons 100k 2023":
-    infilename ="2023_Canyons_100k_V2_b5zvzd.gpx"
-    custom_aid_stations = False
+    infilename ="2023_Canyons_Endurance_Runs_by_UTMB_100k_new_Course_9ab992e1c7.gpx"
+    custom_aid_stations = Canyons100k2023
 else:
     raise ValueError(f"Unknown race: {race}")
 
@@ -97,7 +112,7 @@ class Track:
 
     @property
     def vert_max(self):
-        return round(max(self.vert), -2) - 100
+        return round(max(self.vert), -2) + 100
 
     @property
     def vert_min(self):
