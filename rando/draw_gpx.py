@@ -34,7 +34,7 @@ from dataclasses import dataclass
 # Lazy configs
 count_to_show = 2
 show = True
-race = "ES100"
+race = "Canyons 100k 2023"
 
 
 # Races
@@ -78,6 +78,9 @@ elif race == "ES100":
     custom_aid_stations = False
 elif race == "Leadville":
     infilename = "Leadville_100_Run.gpx"
+    custom_aid_stations = False
+elif race == "Canyons 100k 2023":
+    infilename ="2023_Canyons_100k_V2_b5zvzd.gpx"
     custom_aid_stations = False
 else:
     raise ValueError(f"Unknown race: {race}")
