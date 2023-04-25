@@ -167,6 +167,7 @@ def main(_argv):
     count = 0
     out_folder = definitions.ROOT_DIR / "out" / subfolder_name
     out_folder.mkdir(parents=True, exist_ok=True)
+    color = None
     for asi, as_title in zip(asis, asnames):
         # Grab the segment
         segment = full_race.get_segment(last_asi, asi)
@@ -175,6 +176,10 @@ def main(_argv):
         aid_station_label = f"{last_as_title}\nto\n{as_title}"
         miles_label = f"{segment.length:.1f} miles\n{segment.start:.1f} mi to {segment.end:.1f} mi"
         elevation_label = f"{round(segment.stats['up'], -1):.0f}ft climb; {round(segment.stats['down'], -1):.0f}ft descent"
+
+        color = None if color else 'lightgray'
+        ax = plt.gca()
+        ax.set_facecolor(color)
         # Plot it
         plt.figure(figsize=(4, 6), dpi=80)
         plt.plot(segment.along_local, segment.vert)
@@ -195,17 +200,20 @@ def main(_argv):
             bottom=True,  # ticks along the bottom edge are off
             top=False,  # ticks along the top edge are off
             labelbottom=False)  # labels along the bottom edge are off
+        if color:
+            ax = plt.gca()
+            ax.set_facecolor(color)
 
         # Save to file
         outfile = out_folder / f"{as_title}.png"
-        plt.savefig(str(outfile))
+        plt.savefig(str(outfile), facecolor=color)
 
         # Plot overhead
         plt.figure(figsize=(4, 6), dpi=80)
-        plt.plot(lons, lats)
-        plt.plot(lons[last_asi:asi], lats[last_asi:asi], 'r')
+        plt.plot(lons, lats, 'y')
+        plt.plot(lons[last_asi:asi], lats[last_asi:asi], 'b')
         plt.plot(lons[last_asi], lats[last_asi], 'go')
-        plt.plot(lons[asi-1], lats[asi-1], 'rx')
+        plt.plot(lons[asi-1], lats[asi-1], 'ro')
         plt.axis('equal')
         plt.grid(False)
         plt.axis('off')
@@ -215,8 +223,9 @@ def main(_argv):
             f"{elevation_label}",
             y=1, pad=-14, loc='left')
 
+        # Save it
         outfile = out_folder / f"{as_title}-xy.png"
-        plt.savefig(str(outfile))
+        plt.savefig(str(outfile), facecolor=color)
 
         # Clean up
         last_asi = asi
