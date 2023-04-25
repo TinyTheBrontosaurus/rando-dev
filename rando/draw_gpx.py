@@ -69,14 +69,14 @@ VT100 = (
 
 Canyons100k2023 = (
     ("01-HS1 No Hands 1", 3.5),
-    ("02-AS1 Cool 1", 6.5),
-    ("03-AS2 Cool 2", 14.3),
+    ("02-AS1 Cool 1 (Crew)", 6.5),
+    ("03-AS2 Cool 2 (Crew)", 14.3),
     ("04-AS3 Browns Bar 1", 18.5),
     ("05-AS4 ALT", 23.9),
     ("06-AS5 Browns Bar 2", 30.3),
     ("07-HS2 No Hands 2", 36.4),
-    ("08-AS6 Mammoth Bar", 40.4),
-    ("09-AS7 Drivers Flat", 48.3),
+    ("08-AS6 Mammoth Bar (Drop Bag)", 40.4),
+    ("09-AS7 Drivers Flat (Crew)", 48.3),
     ("10-AS8 Clementine", 56.7),
     ("11-HS3 No Hands 3", 60.4),
     ("12-Downtown Auburn - Finish", 63.9)
@@ -150,6 +150,8 @@ def main(_argv):
     subfolder_name = gpxfile.stem
 
     full_race = load_full_race(gpx)
+    lats = [pt.latitude for pt in gpx.tracks[0].segments[0].points]
+    lons = [pt.longitude for pt in gpx.tracks[0].segments[0].points]
 
     # Load the aid stations (as)
     if not custom_aid_stations:
@@ -196,6 +198,24 @@ def main(_argv):
 
         # Save to file
         outfile = out_folder / f"{as_title}.png"
+        plt.savefig(str(outfile))
+
+        # Plot overhead
+        plt.figure(figsize=(4, 6), dpi=80)
+        plt.plot(lons, lats)
+        plt.plot(lons[last_asi:asi], lats[last_asi:asi], 'r')
+        plt.plot(lons[last_asi], lats[last_asi], 'go')
+        plt.plot(lons[asi-1], lats[asi-1], 'rx')
+        plt.axis('equal')
+        plt.grid(False)
+        plt.axis('off')
+        plt.title(
+            f"{last_as_title} to\n{as_title}\n"
+            f"{segment.length:.1f} miles; {segment.start:.1f} mi to {segment.end:.1f} mi\n"
+            f"{elevation_label}",
+            y=1, pad=-14, loc='left')
+
+        outfile = out_folder / f"{as_title}-xy.png"
         plt.savefig(str(outfile))
 
         # Clean up
