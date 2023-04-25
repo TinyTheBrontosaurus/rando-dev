@@ -209,9 +209,8 @@ def main(_argv):
 
         # Plot overhead
         #plt.figure(figsize=(4, 6), dpi=80)
-        fig, axs = plt.subplots(2, 1, figsize=(4, 6), dpi=80, height_ratios=[2, 1])
+        fig, axs = plt.subplots(2, 1, figsize=(4, 6), dpi=80, height_ratios=[4, 1])
         ax = axs[0]
-#        axs[0].axis('off')
         ax.plot(lons, lats, 'y')
         ax.plot(lons[last_asi:asi], lats[last_asi:asi], 'b')
         ax.plot(lons[last_asi], lats[last_asi], 'go')
