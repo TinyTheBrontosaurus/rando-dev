@@ -178,8 +178,7 @@ def main(_argv):
         elevation_label = f"{round(segment.stats['up'], -1):.0f}ft climb; {round(segment.stats['down'], -1):.0f}ft descent"
 
         color = None if color else 'lightgray'
-        ax = plt.gca()
-        ax.set_facecolor(color)
+
         # Plot it
         plt.figure(figsize=(4, 6), dpi=80)
         plt.plot(segment.along_local, segment.vert)
@@ -209,23 +208,36 @@ def main(_argv):
         plt.savefig(str(outfile), facecolor=color)
 
         # Plot overhead
-        plt.figure(figsize=(4, 6), dpi=80)
-        plt.plot(lons, lats, 'y')
-        plt.plot(lons[last_asi:asi], lats[last_asi:asi], 'b')
-        plt.plot(lons[last_asi], lats[last_asi], 'go')
-        plt.plot(lons[asi-1], lats[asi-1], 'ro')
-        plt.axis('equal')
-        plt.grid(False)
-        plt.axis('off')
-        plt.title(
+        #plt.figure(figsize=(4, 6), dpi=80)
+        fig, axs = plt.subplots(2, 1, figsize=(4, 6), dpi=80, height_ratios=[2, 1])
+        ax = axs[0]
+#        axs[0].axis('off')
+        ax.plot(lons, lats, 'y')
+        ax.plot(lons[last_asi:asi], lats[last_asi:asi], 'b')
+        ax.plot(lons[last_asi], lats[last_asi], 'go')
+        ax.plot(lons[asi-1], lats[asi-1], 'ro')
+        ax.axis('square')
+        ax.grid(False)
+        ax.axis('off')
+        ax.margins(0)
+
+        ax = axs[1]
+        ax.plot(full_race.along, full_race.vert, 'y')
+        ax.plot(segment.along, segment.vert, 'b')
+
+        # Fancy up the axes
+        ax.grid(False)
+        ax.axis('off')
+
+        fig.suptitle(
             f"{last_as_title} to\n{as_title}\n"
             f"{segment.length:.1f} miles; {segment.start:.1f} mi to {segment.end:.1f} mi\n"
-            f"{elevation_label}",
-            y=1, pad=-14, loc='left')
+            f"{elevation_label}")#,
+#            y=1, pad=-14, loc='left')
 
         # Save it
         outfile = out_folder / f"{as_title}-xy.png"
-        plt.savefig(str(outfile), facecolor=color)
+        plt.savefig(str(outfile), bbox_inches=0, facecolor=color)
 
         # Clean up
         last_asi = asi
