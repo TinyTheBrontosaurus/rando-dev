@@ -34,7 +34,7 @@ from dataclasses import dataclass
 # Lazy configs
 count_to_show = 999
 show = False
-race = "Canyons 100k 2023"
+race = "The Rut 5k 2023"
 
 
 # Races
@@ -82,6 +82,16 @@ Canyons100k2023 = (
     ("12-Downtown Auburn - Finish", 63.9)
 )
 
+TheRut50k2023 = (
+    ("01-Moonlight Lodge 1", 5.6),
+    ("02-Moonlight Lodge 2", 10.6),
+    ("03-Swiftcurrent", 18.7),
+    ("04-Dakota (Water Only", 21.7),
+    ("05-Moosetracks", 24),
+    ("06-Andesite", 26.2),
+    ("07-FINISH", 31.1)
+)
+
 if race == "VT100_strava":
     infilename = "Vermont_100.gpx"
     custom_aid_stations = VT100
@@ -97,6 +107,9 @@ elif race == "Leadville":
 elif race == "Canyons 100k 2023":
     infilename ="2023_Canyons_Endurance_Runs_by_UTMB_100k_new_Course_9ab992e1c7.gpx"
     custom_aid_stations = Canyons100k2023
+elif race == "The Rut 5k 2023":
+    infilename = "2023 The Rut 50k.gpx"
+    custom_aid_stations = TheRut50k2023
 else:
     raise ValueError(f"Unknown race: {race}")
 
