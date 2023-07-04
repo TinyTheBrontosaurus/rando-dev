@@ -34,7 +34,7 @@ from dataclasses import dataclass
 # Lazy configs
 count_to_show = 999
 show = False
-race = "Ragged 75"
+race = "The Rut"
 
 
 # Races
