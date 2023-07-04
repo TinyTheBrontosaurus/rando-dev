@@ -34,7 +34,7 @@ from dataclasses import dataclass
 # Lazy configs
 count_to_show = 999
 show = False
-race = "The Rut"
+race = "Crazy Mountain 100"
 
 
 # Races
@@ -125,6 +125,22 @@ elif race == "The Rut":
         ("05-AS4 Moosetracks", 24),
         ("06-AS5 Andesite", 26.2),
         ("Finish line", 31.04),
+    )
+elif race == "Crazy Mountain 100":
+    infilename = "Crazy_Mountain_100.gpx"
+    custom_aid_stations = (
+        ("01 #1 Porcupine", 6),
+        ("02 #2 Ibex", 19.3),
+        ("03 #3 Cow Camp", 32),
+        ("04 #4 Halfmoon", 43.6),
+        ("05 *Conical pass cutoff", 50.4),
+        ("06 #5 Cow Camp", 55.2),
+        ("07 #6 Sunlight", 63.8),
+        ("08 #7 Crandall", 69.7),
+        ("09 #8 Forest Lake", 76.3),
+        ("10 #9 Honey Trail", 88.7),
+        ("11 #10 Huntin Camp", 95.8),
+        ("12 Finish", 103),
     )
 else:
     raise ValueError(f"Unknown race: {race}")
