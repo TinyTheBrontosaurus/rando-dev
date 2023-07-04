@@ -34,7 +34,11 @@ from dataclasses import dataclass
 # Lazy configs
 count_to_show = 999
 show = False
+<<<<<<< HEAD
 race = "Crazy Mountain 100"
+=======
+race = "The Rut 5k 2023"
+>>>>>>> 31616ff78d09ff62b29ffb7d4b3df6e570f08d05
 
 
 # Races
@@ -80,6 +84,16 @@ Canyons100k2023 = (
     ("10-AS8 Clementine", 56.7),
     ("11-HS3 No Hands 3", 60.4),
     ("12-Downtown Auburn - Finish", 63.9)
+)
+
+TheRut50k2023 = (
+    ("01-Moonlight Lodge 1", 5.6),
+    ("02-Moonlight Lodge 2", 10.6),
+    ("03-Swiftcurrent", 18.7),
+    ("04-Dakota (Water Only", 21.7),
+    ("05-Moosetracks", 24),
+    ("06-Andesite", 26.2),
+    ("07-FINISH", 31.1)
 )
 
 if race == "VT100_strava":
@@ -142,6 +156,9 @@ elif race == "Crazy Mountain 100":
         ("11 #10 Huntin Camp", 95.8),
         ("12 Finish", 103),
     )
+elif race == "The Rut 5k 2023":
+    infilename = "2023 The Rut 50k.gpx"
+    custom_aid_stations = TheRut50k2023
 else:
     raise ValueError(f"Unknown race: {race}")
 
