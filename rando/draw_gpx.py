@@ -34,7 +34,11 @@ from dataclasses import dataclass
 # Lazy configs
 count_to_show = 999
 show = False
+<<<<<<< HEAD
+race = "Crazy Mountain 100"
+=======
 race = "The Rut 5k 2023"
+>>>>>>> 31616ff78d09ff62b29ffb7d4b3df6e570f08d05
 
 
 # Races
@@ -107,6 +111,51 @@ elif race == "Leadville":
 elif race == "Canyons 100k 2023":
     infilename ="2023_Canyons_Endurance_Runs_by_UTMB_100k_new_Course_9ab992e1c7.gpx"
     custom_aid_stations = Canyons100k2023
+elif race == "Ragged 75":
+    infilename = ["Ragged_75_Stage_1.gpx", "Ragged_75_Stage_2.gpx", "Ragged_75_Stage_3.gpx"]
+    S1 = 24.22
+    S2 = 23.26
+    S3 = 33.46
+    custom_aid_stations = (
+        ("01-AS1 ", S1/2),
+        ("02-CKP Wadeligh State park", S1),
+        ("03-AS1 ", S1 + S2/2),
+        ("04-CKP Sunapee Middle School", S1 + S2),
+        ("05-AS1 ", S1 + S2 + S3/6),
+        ("06-AS2 ", S1 + S2 + 2*S3/6),
+        ("07-AS3 ", S1 + S2 + 3*S3/6),
+        ("08-AS4 ", S1 + S2 + 4*S3/6),
+        ("09-AS5 ", S1 + S2 + 5*S3/6),
+        ("10-Finish", float('inf')),
+    )
+
+elif race == "The Rut":
+    infilename = "Rut_50k.gpx"
+    custom_aid_stations = (
+        ("01-AS1 Moonlight Lodge #1", 5.6),
+        ("02-AS2 Moonlight Lodge #2", 10.6),
+        ("03-AS3 Swiftcurrent", 18.7),
+        ("04-HS1 Dakota", 21.7),
+        ("05-AS4 Moosetracks", 24),
+        ("06-AS5 Andesite", 26.2),
+        ("Finish line", 31.04),
+    )
+elif race == "Crazy Mountain 100":
+    infilename = "Crazy_Mountain_100.gpx"
+    custom_aid_stations = (
+        ("01 #1 Porcupine", 6),
+        ("02 #2 Ibex", 19.3),
+        ("03 #3 Cow Camp", 32),
+        ("04 #4 Halfmoon", 43.6),
+        ("05 *Conical pass cutoff", 50.4),
+        ("06 #5 Cow Camp", 55.2),
+        ("07 #6 Sunlight", 63.8),
+        ("08 #7 Crandall", 69.7),
+        ("09 #8 Forest Lake", 76.3),
+        ("10 #9 Honey Trail", 88.7),
+        ("11 #10 Huntin Camp", 95.8),
+        ("12 Finish", 103),
+    )
 elif race == "The Rut 5k 2023":
     infilename = "2023 The Rut 50k.gpx"
     custom_aid_stations = TheRut50k2023
@@ -156,15 +205,31 @@ class Track:
 
 
 def main(_argv):
-    gpxfile = definitions.DATA_DIR / infilename
-    with gpxfile.open('r') as f:
-        gpx = gpxpy.parse(f)
+    if isinstance(infilename, str):
+        files_list = [infilename]
+    else:
+        files_list = infilename
 
-    subfolder_name = gpxfile.stem
+    lats = []
+    lons = []
+    full_race = None
+    for gpxfilename in files_list:
 
-    full_race = load_full_race(gpx)
-    lats = [pt.latitude for pt in gpx.tracks[0].segments[0].points]
-    lons = [pt.longitude for pt in gpx.tracks[0].segments[0].points]
+        gpxfile = definitions.DATA_DIR / gpxfilename
+        with gpxfile.open('r') as f:
+            gpx = gpxpy.parse(f)
+
+        subfolder_name = gpxfile.stem
+
+        partial_race = load_full_race(gpx)
+        lats.extend([pt.latitude for pt in gpx.tracks[0].segments[0].points])
+        lons.extend([pt.longitude for pt in gpx.tracks[0].segments[0].points])
+
+        if full_race is None:
+            full_race = partial_race
+        else:
+            full_race.vert = np.append(full_race.vert, partial_race.vert)
+            full_race.along = np.append(full_race.along, partial_race.along + full_race.along[-1])
 
     # Load the aid stations (as)
     if not custom_aid_stations:
