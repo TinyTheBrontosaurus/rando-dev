@@ -94,7 +94,29 @@ TheRut50k2023 = (
 
 if race == "Cruel Jewel 2024":
     infilename = "2023-cruel-jewel-100-final.gpx"
-    custom_aid_stations = False
+    custom_aid_stations = (
+        ("AS1 Deep Gap", 2.7),
+        ("AS2 Deep Gap (Bib Punch)", 8.5),
+        ("AS3 Stanley Gap", 13.2),
+        ("AS4 Old Dial Road", 19.1),
+        ("AS5 Wilscot Gap", 24.6),
+        ("AS6 Skeenah Gap", 29.5),
+        ("AS7 Fish Gap", 34.4),
+        ("AS8 Fire Pit", 41.7),
+        ("AS9 Wolf Creek", 46.4),
+        ("AS10 Poor Decisions (Bib Punch)", 49.1),
+        ("AS11 Wolf Creek", 51.8),
+        ("AS12 Fire Pit", 56.5),
+        ("AS13 Fish Gap", 63.8),
+        ("AS14 Skeenah Gap", 68.7),
+        ("AS15 Wilscot Gap", 73.6),
+        ("AS16 Old Dial Road", 79.1),
+        ("AS17 Stanley Gap", 85),
+        ("AS18 Weaver Creek Road", 90.4),
+        ("AS19 Deep Gap", 95.4),
+        ("AS20 Deep Gap (Bib Punch)", 101.2),
+        ("FINISH LINE", 107)
+    )
 elif race == "VT100_strava":
     infilename = "Vermont_100.gpx"
     custom_aid_stations = VT100
