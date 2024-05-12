@@ -34,11 +34,7 @@ from dataclasses import dataclass
 # Lazy configs
 count_to_show = 999
 show = False
-<<<<<<< HEAD
-race = "Crazy Mountain 100"
-=======
-race = "The Rut 5k 2023"
->>>>>>> 31616ff78d09ff62b29ffb7d4b3df6e570f08d05
+race = "Cruel Jewel 2024"
 
 
 # Races
@@ -96,7 +92,10 @@ TheRut50k2023 = (
     ("07-FINISH", 31.1)
 )
 
-if race == "VT100_strava":
+if race == "Cruel Jewel 2024":
+    infilename = "2023-cruel-jewel-100-final.gpx"
+    custom_aid_stations = False
+elif race == "VT100_strava":
     infilename = "Vermont_100.gpx"
     custom_aid_stations = VT100
 elif race == "VT100_garmin":
