@@ -4,6 +4,7 @@
 import sys
 import gpxpy
 import gpxpy.gpx
+import pathlib
 from rando import definitions
 import matplotlib.pyplot as plt
 import numpy as np
@@ -27,8 +28,13 @@ from dataclasses import dataclass
 #  [x] Use custom waypoints (not build into gpx like ES100)
 #  [x] Do & post VT 100
 # (^^ as of v0.0.2)
-#  [] Increase fonts for phone (2)
-#  [] Annotate the grade of each hill
+#  [ ] Increase fonts for phone (2)
+#  [ ] Annotate the grade of each hill
+# (more good ideas 5/12/2024)
+#  [ ] Mark mileage relative to segment and to overall race on same axis
+#  [ ] More prominent mark that these two pics are for the same segment.
+#  [ ] Grade of each hill easily read
+#  [ ] Version # on plots
 
 
 # Lazy configs
@@ -111,7 +117,7 @@ if race == "Cruel Jewel 2024":
         ("AS14 Skeenah Gap", 68.7),
         ("AS15 Wilscot Gap", 73.6),
         ("AS16 Old Dial Road", 79.1),
-        ("AS17 Stanley Gap", 85),
+        ("AS17 Stanley Gap", 85.0),
         ("AS18 Weaver Creek Road", 90.4),
         ("AS19 Deep Gap", 95.4),
         ("AS20 Deep Gap (Bib Punch)", 101.2),
@@ -266,6 +272,14 @@ def main(_argv):
     count = 0
     out_folder = definitions.ROOT_DIR / "out" / subfolder_name
     out_folder.mkdir(parents=True, exist_ok=True)
+
+    # Grab aid station lat/lons
+    asis_max = np.array(asis)
+    asis_max[asis_max >= np.size(lats)] = np.size(lats) - 1
+    save_aid_stations(np.array(lats).take(asis_max), np.array(lons).take(asis_max),
+                      pathlib.Path(out_folder) / f"{subfolder_name}_aid_stations.gpx")
+
+
     color = None
     for asi, as_title in zip(asis, asnames):
         # Grab the segment
@@ -442,6 +456,26 @@ def load_full_race(gpx):
 
     return Track(along=np.array(dists_total),
                  vert=np.array(eles))
+
+
+def save_aid_stations(lats, lons, filename):
+    gpx = gpxpy.gpx.GPX()
+
+    # Create first track in our GPX:
+    gpx_track = gpxpy.gpx.GPXTrack()
+    gpx.tracks.append(gpx_track)
+
+    # Create first segment in our GPX track:
+    gpx_segment = gpxpy.gpx.GPXTrackSegment()
+    gpx_track.segments.append(gpx_segment)
+
+    # Create points:
+    for lat, lon in zip(lats, lons):
+        gpx_segment.points.append(gpxpy.gpx.GPXTrackPoint(lat, lon, elevation=1234))
+
+    # You can add routes and waypoints, too...
+    with pathlib.Path(filename).open('w') as f:
+        f.write(gpx.to_xml())
 
 
 if __name__ == "__main__":
