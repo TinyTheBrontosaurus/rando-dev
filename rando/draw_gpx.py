@@ -40,7 +40,7 @@ from dataclasses import dataclass
 # Lazy configs
 count_to_show = 999
 show = False
-race = "Cruel Jewel 2024"
+race = "ES100 2025"
 
 
 # Races
@@ -131,6 +131,9 @@ elif race == "VT100_garmin":
     custom_aid_stations = VT100
 elif race == "ES100":
     infilename = "Eastern_States_100_Course_2021.gpx"
+    custom_aid_stations = False
+if race == "ES100 2025":
+    infilename = "Eastern States 100 Course 2025.gpx"
     custom_aid_stations = False
 elif race == "Leadville":
     infilename = "Leadville_100_Run.gpx"
